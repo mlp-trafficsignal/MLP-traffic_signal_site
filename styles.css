@@ -132,6 +132,19 @@ textarea {
   cursor: pointer;
 }
 
+.auto-save-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #e8efe9;
+  color: #245940;
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .placeholder-custom {
   display: grid;
   place-items: center;
