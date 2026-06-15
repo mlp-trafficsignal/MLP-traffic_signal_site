@@ -1569,6 +1569,44 @@ time {
   color: var(--ink);
 }
 
+.hidden-category-select {
+  display: none;
+}
+
+.category-multi-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.category-multi-list button {
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.category-multi-list button.active {
+  border-color: var(--green);
+  background: var(--green);
+  color: #fff;
+}
+
+.field-help {
+  margin: -2px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .term-list {
   display: grid;
   gap: 14px;

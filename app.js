@@ -26,6 +26,7 @@ const defaultSiteSettings = {
   heroEyebrow: "MLP Ch Archive",
   heroTitle: "信号機と道路標識を、見やすく残す。",
   heroText: "都道府県別、カテゴリ別、メーカー別に整理して、写真と解説をスマートに見られるサイトです。",
+  signalsPrefListText: "各都道府県にはトップ画像を1枚設定できます。画像がない県も準備中として表示します。",
   prefPageLeadText: "ページ上部にピックアップ画像を3枚置き、その下に県ごとのカテゴリボタンを表示します。",
   prefCategoryText: "県によって存在する信号が違うため、カテゴリはあとから追加できます。",
   prefCardListText: "カードを押すと、写真・住所・解説をまとめた詳細ページへ進みます。",
@@ -117,11 +118,23 @@ function savedCategoryMap() {
   return readJson(categoryStorageKey, {});
 }
 
+function entryCategories(entry) {
+  if (Array.isArray(entry.categories) && entry.categories.length) {
+    return entry.categories.filter(Boolean);
+  }
+  return entry.category ? [entry.category] : [];
+}
+
+function categoryText(categories, fallback = "カテゴリ未設定") {
+  const values = Array.isArray(categories) ? categories.filter(Boolean) : [];
+  return values.length ? values.join(" / ") : fallback;
+}
+
 function categoriesForPref(pref) {
   const fromSettings = savedCategoryMap()[pref] || [];
   const fromEntries = savedEntries()
     .filter((entry) => entry.pref === pref)
-    .map((entry) => entry.category)
+    .flatMap(entryCategories)
     .filter(Boolean);
   return Array.from(new Set([...(data.categories[pref] || []), ...fromSettings, ...fromEntries]));
 }
@@ -220,7 +233,7 @@ function updateCards() {
     title: entry.title,
     kind: "信号機",
     pref: entry.pref,
-    category: entry.category,
+    category: categoryText(entryCategories(entry), entry.category || ""),
     maker: entry.maker,
     date: entry.updatedAt ? entry.updatedAt.slice(0, 10) : "",
     tone: "green",
@@ -258,7 +271,7 @@ function entrySearchText(entry) {
     entry.body,
     entry.pref,
     entry.city,
-    entry.category,
+    ...entryCategories(entry),
     ...makerSearchWords(entry.maker),
     entry.address,
     entry.intersection,
@@ -273,14 +286,17 @@ function searchEntries(query) {
 }
 
 function uniqueValues(entries, key) {
-  return Array.from(new Set(entries.map((entry) => entry[key]).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja"));
+  const values = key === "category"
+    ? entries.flatMap(entryCategories)
+    : entries.map((entry) => entry[key]);
+  return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja"));
 }
 
 function filterEntries(entries, filters) {
   return entries.filter((entry) => {
     if (filters.pref && entry.pref !== filters.pref) return false;
     if (filters.maker && entry.maker !== filters.maker) return false;
-    if (filters.category && entry.category !== filters.category) return false;
+    if (filters.category && !entryCategories(entry).includes(filters.category)) return false;
     return true;
   });
 }
@@ -318,7 +334,7 @@ function entryCard(entry) {
         <h3>${entry.title || "タイトル未入力"}</h3>
         <p class="location-line">${entry.city || "市区町村未入力"} / ${intersectionText(entry)}</p>
         <p>${entry.summary || "説明はまだありません。"}</p>
-        <span>#${entry.category || "カテゴリ未設定"}</span>
+        <span>#${categoryText(entryCategories(entry))}</span>
       </div>
     </a>
   `;
@@ -372,6 +388,7 @@ function home() {
 }
 
 function signals() {
+  const settings = siteSettings();
   const entriesByPref = savedEntries().reduce((result, entry) => {
     if (!result[entry.pref]) result[entry.pref] = entry;
     return result;
@@ -389,7 +406,7 @@ function signals() {
     <section class="section-block">
       <div class="section-heading">
         <h2>都道府県から探す</h2>
-        <p>各都道府県にはトップ画像を1枚設定できます。画像がない県も準備中として表示します。</p>
+        <p>${settings.signalsPrefListText}</p>
       </div>
       <div class="pref-grid">
         ${data.prefectures.map((pref, index) => {
@@ -476,7 +493,7 @@ function prefPage(pref) {
 
 function categoryPage(pref, cat) {
   const settings = siteSettings();
-  const entries = savedEntries().filter((entry) => entry.pref === pref && entry.category === cat);
+  const entries = savedEntries().filter((entry) => entry.pref === pref && entryCategories(entry).includes(cat));
   const makers = entries.length
     ? Array.from(new Set(entries.map((entry) => entry.maker || "メーカー未設定")))
     : ["日本信号", "京三製作所", "コイト電工"];
@@ -539,11 +556,13 @@ function entryPage(id) {
     result[group].push(photo);
     return result;
   }, {});
+  const categories = entryCategories(entry);
+  const primaryCategory = categories[0] || entry.category || "";
 
   app.innerHTML = `
     <section class="page-head">
-      ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: entry.pref, href: `#pref/${encodeURIComponent(entry.pref)}` }, { label: entry.category, href: `#category/${encodeURIComponent(entry.pref)}/${encodeURIComponent(entry.category)}` }, { label: entry.title }])}
-      <p class="eyebrow">${entry.pref} / ${entry.category}</p>
+      ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: entry.pref, href: `#pref/${encodeURIComponent(entry.pref)}` }, { label: primaryCategory || "カテゴリ", href: `#category/${encodeURIComponent(entry.pref)}/${encodeURIComponent(primaryCategory)}` }, { label: entry.title }])}
+      <p class="eyebrow">${entry.pref} / ${categoryText(categories)}</p>
       <h1>${entry.title}</h1>
       <p>${entry.summary || ""}</p>
     </section>
