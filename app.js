@@ -43,8 +43,6 @@ const defaultSiteSettings = {
 
 function readJson(key, fallback) {
   try {
-    const local = localStorage.getItem(key);
-    if (local) return JSON.parse(local);
     if (Object.prototype.hasOwnProperty.call(fileData, key)) return fileData[key];
     return fallback;
   } catch {
