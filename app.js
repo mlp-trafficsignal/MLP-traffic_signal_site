@@ -26,6 +26,10 @@ const defaultSiteSettings = {
   heroEyebrow: "MLP Ch Archive",
   heroTitle: "信号機と道路標識を、見やすく残す。",
   heroText: "都道府県別、カテゴリ別、メーカー別に整理して、写真と解説をスマートに見られるサイトです。",
+  prefPageLeadText: "ページ上部にピックアップ画像を3枚置き、その下に県ごとのカテゴリボタンを表示します。",
+  prefCategoryText: "県によって存在する信号が違うため、カテゴリはあとから追加できます。",
+  prefCardListText: "カードを押すと、写真・住所・解説をまとめた詳細ページへ進みます。",
+  categoryPageLeadText: "メーカー別にページ内で分け、紹介カードから詳細ページに進みます。",
   footerLeft: "MLP Ch / 信号機",
   footerRight: "掲載内容は現地状況と異なる場合があります。",
   logoImage: "",
@@ -413,6 +417,7 @@ function signals() {
 }
 
 function prefPage(pref) {
+  const settings = siteSettings();
   const entries = savedEntries().filter((entry) => entry.pref === pref);
   const categories = categoriesForPref(pref);
   const manualPickups = prefImages()[pref]?.pickups || [];
@@ -422,7 +427,7 @@ function prefPage(pref) {
       ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: pref }])}
       <p class="eyebrow">Prefecture</p>
       <h1>${pref}の信号機</h1>
-      <p>ページ上部にピックアップ画像を3枚置き、その下に県ごとのカテゴリボタンを表示します。</p>
+      <p>${settings.prefPageLeadText}</p>
     </section>
 
     <section class="pickup-row">
@@ -450,7 +455,7 @@ function prefPage(pref) {
     <section class="section-block">
       <div class="section-heading">
         <h2>カテゴリ</h2>
-        <p>県によって存在する信号が違うため、カテゴリはあとから追加できます。</p>
+        <p>${settings.prefCategoryText}</p>
       </div>
       <div class="category-buttons">
         ${(categories.length ? categories : ["準備中"]).map((cat) => `<a href="#category/${encodeURIComponent(pref)}/${encodeURIComponent(cat)}">${cat}</a>`).join("")}
@@ -460,7 +465,7 @@ function prefPage(pref) {
     <section class="section-block">
       <div class="section-heading">
         <h2>${pref}の紹介カード</h2>
-        <p>カードを押すと、写真・住所・解説をまとめた詳細ページへ進みます。</p>
+        <p>${settings.prefCardListText}</p>
       </div>
       <div class="card-grid">
         ${entries.length ? entries.map(entryCard).join("") : `<article class="empty-card"><p>まだ紹介がありません。</p></article>`}
@@ -470,6 +475,7 @@ function prefPage(pref) {
 }
 
 function categoryPage(pref, cat) {
+  const settings = siteSettings();
   const entries = savedEntries().filter((entry) => entry.pref === pref && entry.category === cat);
   const makers = entries.length
     ? Array.from(new Set(entries.map((entry) => entry.maker || "メーカー未設定")))
@@ -479,7 +485,7 @@ function categoryPage(pref, cat) {
       ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: pref, href: `#pref/${encodeURIComponent(pref)}` }, { label: cat }])}
       <p class="eyebrow">${pref}</p>
       <h1>${cat}</h1>
-      <p>メーカー別にページ内で分け、紹介カードから詳細ページに進みます。</p>
+      <p>${settings.categoryPageLeadText}</p>
     </section>
     <section class="maker-list">
       ${makers.map((maker, makerIndex) => `
