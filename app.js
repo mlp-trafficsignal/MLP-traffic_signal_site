@@ -27,6 +27,11 @@ const defaultSiteSettings = {
   heroTitle: "信号機と道路標識を、見やすく残す。",
   heroText: "都道府県別、カテゴリ別、メーカー別に整理して、写真と解説をスマートに見られるサイトです。",
   signalsPrefListText: "各都道府県にはトップ画像を1枚設定できます。画像がない県も準備中として表示します。",
+  signalsTermsText: "レンズ、灯器の愛称、用語集をここから確認できます。",
+  termsHomeLeadText: "信号機を見るときに使う基礎用語を、レンズ・灯器の愛称・用語集に分けて整理します。",
+  termsPageLeadText: "管理画面で追加した基礎用語を表示します。",
+  termsEmptyTitle: "まだ用語がありません",
+  termsEmptyText: "管理画面の基礎用語管理から追加できます。",
   prefPageLeadText: "ページ上部にピックアップ画像を3枚置き、その下に県ごとのカテゴリボタンを表示します。",
   prefCategoryText: "県によって存在する信号が違うため、カテゴリはあとから追加できます。",
   prefCardListText: "カードを押すと、写真・住所・解説をまとめた詳細ページへ進みます。",
@@ -424,7 +429,7 @@ function signals() {
     <section class="section-block">
       <div class="section-heading">
         <h2>基礎用語</h2>
-        <p>レンズ、灯器の愛称、用語集をここから確認できます。</p>
+        <p>${settings.signalsTermsText}</p>
       </div>
       <div class="term-grid">
         <a href="#terms">基礎用語を見る</a>
@@ -612,12 +617,13 @@ function signs() {
 }
 
 function termsHome() {
+  const settings = siteSettings();
   app.innerHTML = `
     <section class="page-head">
       ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: "基礎用語" }])}
       <p class="eyebrow">Terms</p>
       <h1>基礎用語</h1>
-      <p>信号機を見るときに使う基礎用語を、レンズ・灯器の愛称・用語集に分けて整理します。</p>
+      <p>${settings.termsHomeLeadText}</p>
     </section>
 
     <section class="entry-split term-entry-split" aria-label="基礎用語分類">
@@ -638,13 +644,14 @@ function termsHome() {
 }
 
 function termsPage(group) {
+  const settings = siteSettings();
   const items = terms().filter((item) => item.group === group);
   app.innerHTML = `
     <section class="page-head">
       ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "信号機", href: "#signals" }, { label: "基礎用語", href: "#terms" }, { label: termGroupName(group) }])}
       <p class="eyebrow">Terms</p>
       <h1>${termGroupName(group)}</h1>
-      <p>管理画面で追加した基礎用語を表示します。</p>
+      <p>${settings.termsPageLeadText}</p>
     </section>
 
     <section class="term-list">
@@ -670,8 +677,8 @@ function termsPage(group) {
         <article class="term-card">
           <div class="photo-placeholder"><span>準備中</span></div>
           <div>
-            <h2>まだ用語がありません</h2>
-            <p>管理画面の基礎用語管理から追加できます。</p>
+            <h2>${settings.termsEmptyTitle}</h2>
+            <p>${settings.termsEmptyText}</p>
           </div>
         </article>
       `}
