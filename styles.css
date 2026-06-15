@@ -1516,6 +1516,23 @@ time {
   font-weight: 900;
 }
 
+.term-admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.term-admin-actions button {
+  min-height: 34px;
+  padding: 6px 10px;
+  color: var(--ink);
+}
+
+.term-admin-actions .danger-button {
+  color: var(--red);
+}
+
 .term-admin-list {
   display: grid;
   gap: 10px;
