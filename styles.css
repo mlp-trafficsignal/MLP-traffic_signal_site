@@ -562,6 +562,43 @@ main,
   font-size: 17px;
 }
 
+.entry-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.entry-title-row h3 {
+  min-width: 0;
+  flex: 1;
+}
+
+.entry-stamp {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.stamp-updated {
+  background: #ffd84d;
+  color: #171717;
+  border: 1px solid #c49a00;
+}
+
+.stamp-removed {
+  background: #ffd84d;
+  color: #171717;
+  border: 1px solid #c49a00;
+}
+
 .meta,
 time {
   color: var(--muted);

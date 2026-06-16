@@ -330,13 +330,28 @@ function filterForm(query, baseResults, filters) {
   `;
 }
 
+function entryStampLabel(value) {
+  return {
+    updated: "更新済",
+    removed: "撤去済"
+  }[value] || "";
+}
+
+function entryStampMarkup(value) {
+  const label = entryStampLabel(value);
+  return label ? `<span class="entry-stamp stamp-${value}">${label}</span>` : "";
+}
+
 function entryCard(entry) {
   return `
     <a class="entry-card" href="#entry/${entry.id}">
       ${imageThumb(entry.coverImage, "entry-thumb tone-0")}
       <div>
         <p class="meta">${entry.pref || "都道府県未入力"} / ${entry.maker || "メーカー未設定"}</p>
-        <h3>${entry.title || "タイトル未入力"}</h3>
+        <div class="entry-title-row">
+          <h3>${entry.title || "タイトル未入力"}</h3>
+          ${entryStampMarkup(entry.stamp)}
+        </div>
         <p class="location-line">${entry.city || "市区町村未入力"} / ${intersectionText(entry)}</p>
         <p>${entry.summary || "説明はまだありません。"}</p>
         <span>#${categoryText(entryCategories(entry))}</span>
@@ -518,10 +533,13 @@ function categoryPage(pref, cat) {
               const entry = typeof entryOrNumber === "object" ? entryOrNumber : null;
               return `
               <a class="entry-card" href="#entry/${entry ? entry.id : `${makerIndex}-${n}`}">
-                ${imageThumb(entry?.coverImage, `entry-thumb tone-${(makerIndex + n) % 5}`)}
-                <div>
-                  <p class="meta">${pref} / ${maker}</p>
-                  <h3>${entry?.title || `${cat} サンプル ${n + 1}`}</h3>
+                  ${imageThumb(entry?.coverImage, `entry-thumb tone-${(makerIndex + n) % 5}`)}
+                  <div>
+                    <p class="meta">${pref} / ${maker}</p>
+                  <div class="entry-title-row">
+                    <h3>${entry?.title || `${cat} サンプル ${n + 1}`}</h3>
+                    ${entry ? entryStampMarkup(entry.stamp) : ""}
+                  </div>
                   ${entry ? `<p class="location-line">${entry.city || "市区町村未入力"} / ${intersectionText(entry)}</p>` : ""}
                   <p>${entry?.summary || "カードを押すと、写真・住所・リンク・解説をまとめた1件ページへ進みます。"}</p>
                   <span>#${cat}</span>
