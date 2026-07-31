@@ -45,8 +45,10 @@
     "summary": "野辺地町のおまけ付き灯器です。",
     "stamp": "",
     "pref": "青森県",
-    "category": "",
-    "categories": [],
+    "category": "おまけの一灯",
+    "categories": [
+      "おまけの一灯"
+    ],
     "maker": "京三製作所",
     "city": "上北郡野辺地町",
     "hasIntersection": false,
@@ -55,7 +57,7 @@
     "map": "https://maps.app.goo.gl/Rtt5Tg1ke7KPos9D7",
     "video": "",
     "body": "野辺地町にあるおまけのVSP一灯付き松下蛇の目カマボコです。2026/7の撮影時点で撤去予告の立て看板が掲出されていました。押ボタンが押下されると交差点のすべての灯器が黄色→赤と変わります。歩灯が赤になると点滅に復帰します。",
-    "updatedAt": "2026-07-31T17:11:59.983Z"
+    "updatedAt": "2026-07-31T17:19:22.097Z"
   },
   {
     "id": "entry-1781621433873",
