@@ -1916,6 +1916,43 @@ time {
   font-size: 12px;
 }
 
+.backup-list {
+  display: grid;
+  gap: 10px;
+}
+
+.backup-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.backup-item div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.backup-item strong,
+.backup-item span,
+.backup-item small {
+  overflow-wrap: anywhere;
+}
+
+.backup-item strong {
+  color: var(--ink);
+}
+
+.backup-item span,
+.backup-item small {
+  color: var(--muted);
+}
+
 .tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -2047,6 +2084,7 @@ time {
   .save-actions,
   .saved-entry,
   .top-image-item,
+  .backup-item,
   .term-admin-item,
   .term-card,
   .term-detail-list div {
