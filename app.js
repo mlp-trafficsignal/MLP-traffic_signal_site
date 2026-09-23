@@ -590,12 +590,7 @@ function entryPage(id) {
     return;
   }
 
-  const groups = (entry.detailPhotos || []).reduce((result, photo) => {
-    const group = photo.group || "その他";
-    if (!result[group]) result[group] = [];
-    result[group].push(photo);
-    return result;
-  }, {});
+  const usageGroups = groupedPhotosByUsage(entry.detailPhotos || []);
   const categories = entryCategories(entry);
   const primaryCategory = categories[0] || entry.category || "";
 
@@ -609,25 +604,20 @@ function entryPage(id) {
 
     <article class="public-detail">
       <div class="public-cover">${imageThumb(entry.coverImage, "entry-thumb tone-0")}</div>
-      ${Object.entries(groups).map(([group, photos]) => `
+      ${Object.entries(usageGroups).map(([usage, photos]) => `
         <section>
-          <h2>${group}</h2>
-          ${Object.entries(groupedPhotosByUsage(photos)).map(([usage, usagePhotos]) => `
-            <div class="photo-usage-group">
-              <h3>${usage}</h3>
-              <div class="detail-photo-grid">
-                ${usagePhotos.map((photo) => `
-                  <figure>
-                    ${photoImage(photo)}
-                    <figcaption>
-                      <strong>${photo.name || "写真名未入力"}</strong>
-                      <span>${photo.tags || ""}</span>
-                    </figcaption>
-                  </figure>
-                `).join("")}
-              </div>
-            </div>
-          `).join("")}
+          <h2>${usage}</h2>
+          <div class="detail-photo-grid">
+            ${photos.map((photo) => `
+              <figure>
+                ${photoImage(photo)}
+                <figcaption>
+                  <strong>${photo.name || "写真名未入力"}</strong>
+                  <span>${photo.group || "その他"}${photo.tags ? ` / ${photo.tags}` : ""}</span>
+                </figcaption>
+              </figure>
+            `).join("")}
+          </div>
         </section>
       `).join("")}
       <dl>
