@@ -116,7 +116,15 @@ async function loadFileData() {
 }
 
 function savedEntries() {
-  return readJson(storageKey, []).filter((entry) => entry.status === "published");
+  return readJson(storageKey, [])
+    .filter((entry) => entry.status === "published")
+    .map((entry) => ({
+      ...entry,
+      detailPhotos: (entry.detailPhotos || []).map((photo) => ({
+        usage: "",
+        ...photo
+      }))
+    }));
 }
 
 function savedCategoryMap() {
@@ -560,6 +568,15 @@ function photoImage(photo) {
   return `<div class="photo-placeholder placeholder-custom"><span>${siteSettings().placeholderText}</span></div>`;
 }
 
+function groupedPhotosByUsage(photos) {
+  return photos.reduce((result, photo) => {
+    const usage = photo.usage || "用途未入力";
+    if (!result[usage]) result[usage] = [];
+    result[usage].push(photo);
+    return result;
+  }, {});
+}
+
 function entryPage(id) {
   const entry = savedEntries().find((item) => item.id === id);
   if (!entry) {
@@ -595,17 +612,22 @@ function entryPage(id) {
       ${Object.entries(groups).map(([group, photos]) => `
         <section>
           <h2>${group}</h2>
-          <div class="detail-photo-grid">
-            ${photos.map((photo) => `
-              <figure>
-                ${photoImage(photo)}
-                <figcaption>
-                  <strong>${photo.name || "写真名未入力"}</strong>
-                  <span>${photo.tags || ""}</span>
-                </figcaption>
-              </figure>
-            `).join("")}
-          </div>
+          ${Object.entries(groupedPhotosByUsage(photos)).map(([usage, usagePhotos]) => `
+            <div class="photo-usage-group">
+              <h3>${usage}</h3>
+              <div class="detail-photo-grid">
+                ${usagePhotos.map((photo) => `
+                  <figure>
+                    ${photoImage(photo)}
+                    <figcaption>
+                      <strong>${photo.name || "写真名未入力"}</strong>
+                      <span>${photo.tags || ""}</span>
+                    </figcaption>
+                  </figure>
+                `).join("")}
+              </div>
+            </div>
+          `).join("")}
         </section>
       `).join("")}
       <dl>

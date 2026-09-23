@@ -810,6 +810,10 @@ time {
   background: var(--panel);
 }
 
+.publish-guide-panel > article {
+  display: none;
+}
+
 .publish-guide-panel h2 {
   margin: 0;
   font-size: 20px;
@@ -1364,6 +1368,21 @@ time {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 10px;
+}
+
+.photo-usage-group {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.photo-usage-group h3,
+.photo-usage-group h4 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
 }
 
 .detail-photo-grid figure {
