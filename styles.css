@@ -1370,6 +1370,78 @@ time {
   gap: 10px;
 }
 
+.image-edit-modal {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 18px;
+  background: rgba(15, 22, 18, 0.76);
+}
+
+.image-edit-panel {
+  display: grid;
+  gap: 12px;
+  width: min(760px, 100%);
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.image-edit-panel h2,
+.image-edit-panel p {
+  margin: 0;
+}
+
+.image-edit-canvas {
+  display: block;
+  width: 100%;
+  max-height: 58vh;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #eef2ee;
+  touch-action: none;
+  cursor: move;
+}
+
+.image-edit-controls,
+.image-edit-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-edit-controls label {
+  display: flex;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-edit-controls input[type="range"] {
+  flex: 1;
+}
+
+.image-edit-panel button {
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--ink);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.image-edit-panel button.secondary-button {
+  background: var(--panel);
+  color: var(--ink);
+}
+
 .photo-usage-group {
   display: grid;
   gap: 10px;
