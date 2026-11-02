@@ -1117,6 +1117,23 @@ time {
   font-weight: 800;
 }
 
+.editable-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editable-choice button {
+  min-height: 26px;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+}
+
 .add-photo-button,
 .remove-photo-button,
 .save-actions button,
