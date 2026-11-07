@@ -7,6 +7,9 @@ const prefImageStorageKey = "mlp_signal_pref_images";
 const termsStorageKey = "mlp_signal_terms";
 const makerStorageKey = "mlp_signal_makers";
 const photoTagStorageKey = "mlp_signal_photo_tags";
+const signEntryStorageKey = "mlp_sign_entries";
+const signCategoryStorageKey = "mlp_sign_categories";
+const signTypeImagesStorageKey = "mlp_sign_type_images";
 const siteSettingsStorageKey = "mlp_signal_site_settings";
 let fileData = {};
 const fileDataSources = {
@@ -17,6 +20,9 @@ const fileDataSources = {
   [prefImageStorageKey]: "data/pref-images.json",
   [termsStorageKey]: "data/terms.json",
   [photoTagStorageKey]: "data/photo-tags.json",
+  [signEntryStorageKey]: "data/sign-entries.json",
+  [signCategoryStorageKey]: "data/sign-categories.json",
+  [signTypeImagesStorageKey]: "data/sign-type-images.json",
   [siteSettingsStorageKey]: "data/settings.json"
 };
 
@@ -125,6 +131,14 @@ function savedEntries() {
         ...photo
       }))
     }));
+}
+
+function savedSignEntries() {
+  return readJson(signEntryStorageKey, []).filter((entry) => entry.status === "published");
+}
+
+function signTypeImages() {
+  return readJson(signTypeImagesStorageKey, {});
 }
 
 function savedCategoryMap() {
@@ -636,14 +650,121 @@ function entryPage(id) {
 }
 
 function signs() {
+  const entries = savedSignEntries();
+  const legalClasses = ["案内標識", "警戒標識", "規制標識", "指示標識", "補助標識"];
+  const cards = entries.length >= 2
+    ? data.prefectures.map((prefecture) => ({
+        prefecture,
+        entries: entries.filter((entry) => (entry.prefecture || entry.pref || "") === prefecture)
+      })).filter((group) => group.entries.length)
+    : [];
+  const unassigned = entries.filter((entry) => !(entry.prefecture || entry.pref));
+  const unlistedPrefectures = entries.filter((entry) => {
+    const prefecture = entry.prefecture || entry.pref || "";
+    return prefecture && !data.prefectures.includes(prefecture);
+  });
+  const groupedMarkup = entries.length >= 2 ? [
+    ...cards.map(({ prefecture, entries: items }) => `
+      <section class="section-block">
+        <div class="section-heading"><h2>${prefecture}</h2><p>${items.length}件</p></div>
+        ${legalClasses.map((legalClass) => {
+          const classified = items.filter((entry) => entry.legalClass === legalClass);
+          return classified.length ? `<section class="section-block"><div class="section-heading"><h3>${legalClass}</h3></div><div class="card-grid">${classified.map(signCard).join("")}</div></section>` : "";
+        }).join("")}
+        ${items.some((entry) => !legalClasses.includes(entry.legalClass)) ? `<section class="section-block"><div class="section-heading"><h3>法令区分未設定</h3></div><div class="card-grid">${items.filter((entry) => !legalClasses.includes(entry.legalClass)).map(signCard).join("")}</div></section>` : ""}
+      </section>
+    `),
+    unlistedPrefectures.length ? `<section class="section-block"><div class="section-heading"><h2>その他の都道府県名</h2><p>${unlistedPrefectures.length}件</p></div><div class="card-grid">${unlistedPrefectures.map(signCard).join("")}</div></section>` : "",
+    unassigned.length ? `<section class="section-block"><div class="section-heading"><h2>都道府県未設定</h2><p>${unassigned.length}件</p></div><div class="card-grid">${unassigned.map(signCard).join("")}</div></section>` : ""
+  ].join("") : `<div class="card-grid">${entries.map(signCard).join("")}</div>`;
   app.innerHTML = `
     <section class="page-head">
       ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "道路標識" }])}
       <p class="eyebrow">Road Signs</p>
       <h1>道路標識</h1>
-      <p>道路標識コーナーは準備中です。入口だけ先に用意し、後から信号機と同じ考え方で追加します。</p>
+      <p>標識の紹介を掲載しています。</p>
+      <div class="page-actions"><a class="primary-link" href="#sign-catalog">法令別図鑑</a></div>
+    </section>
+    ${groupedMarkup}
+    ${entries.length ? "" : `<section class="empty-state"><h2>標識の紹介は準備中です</h2><p>管理画面から最初の1件を追加できます。</p></section>`}
+  `;
+}
+
+function signCard(entry) {
+  const classification = [entry.legalClass, entry.legalNumber ? `(${entry.legalNumber})` : "", ...(entry.categories || (entry.category ? [entry.category] : []))].filter(Boolean).join(" / ");
+  const imageSet = Array.isArray(entry.cardImages) && entry.cardImages.length ? entry.cardImages : (entry.coverImage ? [entry.coverImage] : []);
+  return `<a class="entry-card" href="#sign-entry/${encodeURIComponent(entry.id)}">
+    ${signCardMedia(imageSet)}
+    <div><p class="meta">${entry.prefecture || entry.pref || "都道府県未設定"}${entry.area ? ` / ${entry.area}` : ""} / ${classification || "その他"}</p><h3>${entry.title || "名称未入力"}</h3><p>${entry.summary || ""}</p></div>
+  </a>`;
+}
+
+function signCardMedia(images) {
+  if (!images.length) return placeholderThumb("entry-thumb tone-0");
+  const visible = images.slice(0, 4);
+  return `<div class="sign-card-gallery"><img class="sign-card-main-image" src="${images[0]}" alt="">${visible.length > 1 ? `<div class="sign-card-thumbnails">${visible.slice(1).map((image) => `<img src="${image}" alt="">`).join("")}${images.length > visible.length ? `<span>+${images.length - visible.length}</span>` : ""}</div>` : ""}</div>`;
+}
+
+function signCatalogHome() {
+  const groups = window.MLP_SIGN_CATALOG?.classes || [];
+  const images = signTypeImages();
+  app.innerHTML = `
+    <section class="page-head">
+      ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "道路標識", href: "#signs" }, { label: "法令別図鑑" }])}
+      <p class="eyebrow">Sign Guide</p>
+      <h1>道路標識図鑑</h1>
+      <p>法令上の5分類から標識を探せます。</p>
+    </section>
+    <section class="sign-catalog-grid">
+      ${groups.map((group, index) => {
+        const firstImage = group.signs.map(([number]) => images[group.name]?.[number]).find(Boolean) || "";
+        const image = firstImage;
+        return `<a class="sign-catalog-tile tone-${index}" href="#sign-catalog/${encodeURIComponent(group.name)}">${image ? `<img src="${image}" alt="">` : `<div class="sign-catalog-empty"><span>${group.name}</span><small>画像未設定</small></div>`}<div><h2>${group.name}</h2><p>${group.signs.length}種類</p></div></a>`;
+      }).join("")}
     </section>
   `;
+  bindZoomableImages();
+}
+
+function signCatalogCategory(className) {
+  const group = (window.MLP_SIGN_CATALOG?.classes || []).find((item) => item.name === className);
+  if (!group) return signCatalogHome();
+  const images = signTypeImages();
+  const entries = savedSignEntries().filter((entry) => entry.legalClass === group.name);
+  app.innerHTML = `
+    <section class="page-head">
+      ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "道路標識", href: "#signs" }, { label: "法令別図鑑", href: "#sign-catalog" }, { label: group.name }])}
+      <p class="eyebrow">Sign Guide</p>
+      <h1>${group.name}</h1>
+      <p>${group.signs.length}種類</p>
+    </section>
+    <section class="sign-law-list" aria-label="法令標識一覧">
+      ${group.signs.map(([number, name]) => {
+        const image = images[group.name]?.[number] || "";
+        return `<article>${image ? `<img src="${image}" alt="${number} ${name}">` : `<div class="sign-law-placeholder">画像未登録</div>`}<span>(${number})</span><h2>${name}</h2></article>`;
+      }).join("")}
+    </section>
+    ${entries.length ? `<section class="section-block"><div class="section-heading"><h2>掲載写真</h2><p>${entries.length}件</p></div><div class="card-grid">${entries.map(signCard).join("")}</div></section>` : ""}
+    <a class="back-link" href="#sign-catalog">図鑑の分類に戻る</a>
+  `;
+  bindZoomableImages();
+}
+
+function signEntryPage(id) {
+  const entry = savedSignEntries().find((item) => item.id === id);
+  if (!entry) {
+    app.innerHTML = `<section class="page-head"><h1>標識の紹介が見つかりません</h1><a href="#signs">道路標識一覧へ戻る</a></section>`;
+    return;
+  }
+  const categoryNames = entry.categories || (entry.category ? [entry.category] : []);
+  app.innerHTML = `<section class="page-head">${breadcrumbs([{ label: "トップ", href: "#home" }, { label: "道路標識", href: "#signs" }, { label: entry.title }])}<p class="eyebrow">${entry.prefecture || entry.pref || ""} / ${entry.area || ""} / ${[entry.legalClass, entry.legalNumber ? `(${entry.legalNumber})` : "", ...categoryNames].filter(Boolean).join(" / ") || "その他"}</p><h1>${entry.title}</h1><p>${entry.summary || ""}</p></section>
+    <article class="public-detail">
+      ${entry.coverImage ? `<div class="public-cover"><img src="${entry.coverImage}" alt=""></div>` : ""}
+      ${(entry.photos || []).length ? `<section><h2>写真</h2><div class="detail-photo-grid">${entry.photos.map((photo) => `<figure><img src="${photo.image}" alt=""><figcaption><strong>${photo.name || "写真"}</strong>${photo.caption ? `<span>${photo.caption}</span>` : ""}</figcaption></figure>`).join("")}</div></section>` : ""}
+      <dl><div><dt>都道府県</dt><dd>${entry.prefecture || entry.pref || "未入力"}</dd></div><div><dt>法令上の種別・番号</dt><dd>${entry.legalClass ? `${entry.legalClass} / ${entry.legalNumber} ${entry.legalName || ""}` : "法定外・未選択"}</dd></div><div><dt>掲載分類</dt><dd>${categoryNames.join("、") || "未設定"}</dd></div><div><dt>地域</dt><dd>${entry.area || "未入力"}</dd></div><div><dt>メーカー</dt><dd>${entry.maker || "未入力"}</dd></div><div><dt>住所</dt><dd>${entry.address || "未入力"}</dd></div><div><dt>地図</dt><dd>${entry.map ? `<a href="${entry.map}" target="_blank" rel="noreferrer">地図を開く</a>` : "未入力"}</dd></div><div><dt>動画</dt><dd>${entry.video ? `<a href="${entry.video}" target="_blank" rel="noreferrer">動画を開く</a>` : "未入力"}</dd></div></dl>
+      <section><h2>解説</h2><p>${entry.body || "解説はありません。"}</p></section>
+    </article>`;
+  bindZoomableImages();
 }
 
 function termsHome() {
@@ -828,9 +949,12 @@ function route() {
   const parts = hash.slice(1).split("/").map(decodeURIComponent);
   if (parts[0] === "signals") return signals();
   if (parts[0] === "signs") return signs();
+  if (parts[0] === "sign-catalog" && !parts[1]) return signCatalogHome();
+  if (parts[0] === "sign-catalog") return signCatalogCategory(parts[1]);
   if (parts[0] === "pref") return prefPage(parts[1]);
   if (parts[0] === "category") return categoryPage(parts[1], parts[2]);
   if (parts[0] === "entry") return entryPage(parts[1]);
+  if (parts[0] === "sign-entry") return signEntryPage(parts[1]);
   if (parts[0] === "terms" && !parts[1]) return termsHome();
   if (parts[0] === "terms") return termsPage(parts[1]);
   if (parts[0] === "search") return searchPage(parts[1] || "", parts.slice(2));
