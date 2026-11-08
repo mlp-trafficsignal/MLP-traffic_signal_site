@@ -166,6 +166,27 @@ function categoriesForPref(pref) {
   return Array.from(new Set([...(data.categories[pref] || []), ...fromSettings, ...fromEntries]));
 }
 
+function categoryParentPath(category) {
+  return String(category || "").split(" > ")[0];
+}
+
+function categoryChildren(pref, parent) {
+  return categoriesForPref(pref).filter((category) => category.startsWith(`${parent} > `));
+}
+
+function makerDisplay(entry) {
+  if (entry.isOdm) {
+    return `銘板上: ${entry.nameplateMaker || entry.maker || "メーカー未設定"} / 製造元: ${entry.producerMaker || entry.maker || "未設定"}（ODM）`;
+  }
+  return entry.maker || "メーカー未設定";
+}
+
+function makerGroup(entry) {
+  return entry.isOdm
+    ? `${entry.nameplateMaker || entry.maker || "メーカー未設定"}（製造元: ${entry.producerMaker || entry.maker || "未設定"}・ODM）`
+    : entry.maker || "メーカー未設定";
+}
+
 function topImages() {
   return readJson(topImageStorageKey, []);
 }
@@ -300,6 +321,8 @@ function entrySearchText(entry) {
     entry.city,
     ...entryCategories(entry),
     ...makerSearchWords(entry.maker),
+    entry.producerMaker,
+    entry.nameplateMaker,
     entry.address,
     entry.intersection,
     ...(entry.detailPhotos || []).flatMap((photo) => [photo.name, photo.group, photo.tags])
@@ -315,6 +338,8 @@ function searchEntries(query) {
 function uniqueValues(entries, key) {
   const values = key === "category"
     ? entries.flatMap(entryCategories)
+    : key === "maker"
+      ? entries.flatMap((entry) => [entry.maker, entry.producerMaker, entry.nameplateMaker])
     : entries.map((entry) => entry[key]);
   return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja"));
 }
@@ -322,7 +347,7 @@ function uniqueValues(entries, key) {
 function filterEntries(entries, filters) {
   return entries.filter((entry) => {
     if (filters.pref && entry.pref !== filters.pref) return false;
-    if (filters.maker && entry.maker !== filters.maker) return false;
+    if (filters.maker && ![entry.maker, entry.producerMaker, entry.nameplateMaker].includes(filters.maker)) return false;
     if (filters.category && !entryCategories(entry).includes(filters.category)) return false;
     return true;
   });
@@ -369,7 +394,7 @@ function entryCard(entry) {
     <a class="entry-card" href="#entry/${entry.id}">
       ${imageThumb(entry.coverImage, "entry-thumb tone-0")}
       <div>
-        <p class="meta">${entry.pref || "都道府県未入力"} / ${entry.maker || "メーカー未設定"}</p>
+        <p class="meta">${entry.pref || "都道府県未入力"} / ${makerDisplay(entry)}</p>
         <div class="entry-title-row">
           <h3>${entry.title || "タイトル未入力"}</h3>
           ${entryStampMarkup(entry.stamp)}
@@ -478,7 +503,7 @@ function signals() {
 function prefPage(pref) {
   const settings = siteSettings();
   const entries = savedEntries().filter((entry) => entry.pref === pref);
-  const categories = categoriesForPref(pref);
+  const categories = Array.from(new Set(categoriesForPref(pref).map(categoryParentPath)));
   const manualPickups = prefImages()[pref]?.pickups || [];
   const pickups = manualPickups.length ? manualPickups : entries.slice(0, 3);
   app.innerHTML = `
@@ -535,9 +560,11 @@ function prefPage(pref) {
 
 function categoryPage(pref, cat) {
   const settings = siteSettings();
+  const children = categoryChildren(pref, cat);
+  const isChild = cat.includes(" > ");
   const entries = savedEntries().filter((entry) => entry.pref === pref && entryCategories(entry).includes(cat));
   const makers = entries.length
-    ? Array.from(new Set(entries.map((entry) => entry.maker || "メーカー未設定")))
+    ? Array.from(new Set(entries.map(makerGroup)))
     : ["日本信号", "京三製作所", "コイト電工"];
   app.innerHTML = `
     <section class="page-head">
@@ -546,18 +573,23 @@ function categoryPage(pref, cat) {
       <h1>${cat}</h1>
       <p>${settings.categoryPageLeadText}</p>
     </section>
-    <section class="maker-list">
+    ${children.length && !isChild ? `<section class="section-block"><div class="section-heading"><h2>${cat}の分類</h2><p>分類を選んでください。</p></div><div class="category-buttons">${children.map((child) => {
+      const childName = child.slice(cat.length + 3);
+      return `<a href="#category/${encodeURIComponent(pref)}/${encodeURIComponent(child)}">${childName}</a>`;
+    }).join("")}</div></section>` : ""}
+    ${children.length && !isChild ? `<p class="category-parent-note">${cat}全体の紹介</p>` : ""}
+    ${entries.length || !children.length || isChild ? `<section class="maker-list">
       ${makers.map((maker, makerIndex) => `
         <div class="maker-section">
           <h2>${maker}</h2>
           <div class="card-grid">
-            ${(entries.length ? entries.filter((entry) => (entry.maker || "メーカー未設定") === maker) : [1, 2]).map((entryOrNumber, n) => {
+            ${(entries.length ? entries.filter((entry) => makerGroup(entry) === maker) : [1, 2]).map((entryOrNumber, n) => {
               const entry = typeof entryOrNumber === "object" ? entryOrNumber : null;
               return `
               <a class="entry-card" href="#entry/${entry ? entry.id : `${makerIndex}-${n}`}">
                   ${imageThumb(entry?.coverImage, `entry-thumb tone-${(makerIndex + n) % 5}`)}
                   <div>
-                    <p class="meta">${pref} / ${maker}</p>
+                    <p class="meta">${pref} / ${entry ? makerDisplay(entry) : maker}</p>
                   <div class="entry-title-row">
                     <h3>${entry?.title || `${cat} サンプル ${n + 1}`}</h3>
                     ${entry ? entryStampMarkup(entry.stamp) : ""}
@@ -571,7 +603,7 @@ function categoryPage(pref, cat) {
           </div>
         </div>
       `).join("")}
-    </section>
+    </section>` : ""}
   `;
 }
 
@@ -635,6 +667,7 @@ function entryPage(id) {
         </section>
       `).join("")}
       <dl>
+        <div><dt>メーカー</dt><dd>${makerDisplay(entry)}</dd></div>
         <div><dt>交差点名</dt><dd>${intersectionText(entry)}</dd></div>
         <div><dt>住所</dt><dd>${entry.address || "未入力"}</dd></div>
         <div><dt>Google Map</dt><dd>${entry.map ? `<a href="${entry.map}" target="_blank" rel="noreferrer">地図を開く</a>` : "未入力"}</dd></div>

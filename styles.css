@@ -12,6 +12,10 @@
   --shadow: 0 18px 48px rgba(23, 32, 28, 0.1);
 }
 
+[hidden] {
+  display: none !important;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -961,6 +965,21 @@ time {
   gap: 7px;
   color: var(--muted);
   font-weight: 700;
+}
+
+.editor-panel .odm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  align-self: end;
+  min-height: 42px;
+}
+
+.editor-panel .odm-toggle input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  accent-color: var(--green);
 }
 
 .editor-panel input,
