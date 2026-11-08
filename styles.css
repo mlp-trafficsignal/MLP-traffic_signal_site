@@ -2241,6 +2241,15 @@ time {
 
 .sign-image-drop input { width: 100%; }
 .sign-image-drop span, .field-help { color: #617168; font-size: 13px; }
+.sign-card-dropzone { transition: background-color 120ms ease, border-color 120ms ease; }
+.sign-card-dropzone.is-dragover { border-color: var(--green); background: #e7f3eb; }
+.sign-image-drop.is-dragover { border-color: var(--green); background: #e7f3eb; }
+.sign-type-image-row.is-dragover { border-color: var(--green); background: #f0f7f2; }
+.sign-card-dropzone > p { margin: 0; }
+.sign-card-dropzone > button,
+#signPhotosDropzone > button { justify-self: start; padding: 8px 14px; border: 0; border-radius: 6px; background: #17201c; color: #fff; font-weight: 700; cursor: pointer; }
+.sign-card-dropzone .sign-upload-status { min-height: 1.4em; color: #245c3d; font-weight: 700; }
+.sign-upload-status { min-height: 1.3em; margin: 2px 0 0; color: #245c3d; font-size: 12px; font-weight: 700; }
 .sign-classifications { margin: 0; padding: 12px; border: 1px solid #d8dfda; border-radius: 6px; }
 .sign-classifications legend { padding: 0 6px; font-weight: 700; }
 .choice-grid { display: flex; flex-wrap: wrap; gap: 8px; }
