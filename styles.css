@@ -118,6 +118,7 @@ textarea {
 }
 
 .header-nav a,
+.header-nav button,
 .quick-save-button,
 .logout-button,
 .info-buttons button,
@@ -1708,6 +1709,23 @@ time {
   color: var(--red);
   cursor: pointer;
   font-weight: 900;
+}
+
+.top-image-actions {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.top-image-actions button[data-move-top] {
+  width: 38px;
+  padding: 0;
+  color: var(--ink);
+}
+
+.top-image-actions button:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .term-admin-actions {
