@@ -122,6 +122,7 @@ textarea {
 .quick-save-button,
 .logout-button,
 .info-buttons button,
+.info-buttons a,
 .category-buttons a,
 .term-grid a {
   min-height: 42px;
@@ -431,8 +432,29 @@ main,
   gap: 10px;
 }
 
-.info-buttons button {
+.info-buttons a {
   cursor: pointer;
+}
+
+.info-page-editor {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.info-page-editor legend {
+  padding: 0 5px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.info-page-content > p {
+  max-width: 75ch;
+  margin: 0;
+  line-height: 1.9;
 }
 
 .section-block {

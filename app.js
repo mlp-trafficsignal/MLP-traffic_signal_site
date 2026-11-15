@@ -42,6 +42,14 @@ const defaultSiteSettings = {
   prefCategoryText: "県によって存在する信号が違うため、カテゴリはあとから追加できます。",
   prefCardListText: "カードを押すと、写真・住所・解説をまとめた詳細ページへ進みます。",
   categoryPageLeadText: "メーカー別にページ内で分け、紹介カードから詳細ページに進みます。",
+  aboutPageTitle: "このサイトについて",
+  aboutPageBody: "",
+  usagePageTitle: "画像・文章の利用について",
+  usagePageBody: "",
+  contentPageTitle: "掲載内容について",
+  contentPageBody: "",
+  contactPageTitle: "お問い合わせ",
+  contactPageBody: "",
   footerLeft: "MLP Ch / 信号機",
   footerRight: "掲載内容は現地状況と異なる場合があります。",
   logoImage: "",
@@ -56,6 +64,13 @@ const defaultSiteSettings = {
   placeholderBackground: "#e8efe9",
   placeholderText: "画像準備中"
 };
+
+const infoPageDefinitions = [
+  { id: "about", titleKey: "aboutPageTitle", bodyKey: "aboutPageBody", defaultTitle: "このサイトについて", eyebrow: "About" },
+  { id: "usage", titleKey: "usagePageTitle", bodyKey: "usagePageBody", defaultTitle: "画像・文章の利用について", eyebrow: "Use" },
+  { id: "content", titleKey: "contentPageTitle", bodyKey: "contentPageBody", defaultTitle: "掲載内容について", eyebrow: "Information" },
+  { id: "contact", titleKey: "contactPageTitle", bodyKey: "contactPageBody", defaultTitle: "お問い合わせ", eyebrow: "Contact" }
+];
 
 function readJson(key, fallback) {
   try {
@@ -155,6 +170,16 @@ function entryCategories(entry) {
 function categoryText(categories, fallback = "カテゴリ未設定") {
   const values = Array.isArray(categories) ? categories.filter(Boolean) : [];
   return values.length ? values.join(" / ") : fallback;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>\"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;"
+  }[character]));
 }
 
 function categoriesForPref(pref) {
@@ -440,7 +465,7 @@ function home() {
     </section>
 
     <section class="info-buttons" aria-label="案内">
-      ${data.infoLinks.map((item) => `<button type="button" title="${item.text}">${item.title}</button>`).join("")}
+      ${infoPageDefinitions.map((page) => `<a href="#info/${page.id}">${escapeHtml(settings[page.titleKey] || page.defaultTitle)}</a>`).join("")}
     </section>
 
     <section class="section-block">
@@ -450,6 +475,24 @@ function home() {
         <p>信号機・道路標識を合わせて、新しい順に24件表示します。</p>
       </div>
       <div class="update-grid">${updateCards()}</div>
+    </section>
+  `;
+}
+
+function infoPage(id) {
+  const page = infoPageDefinitions.find((item) => item.id === id);
+  if (!page) return home();
+  const settings = siteSettings();
+  const title = settings[page.titleKey] || page.defaultTitle;
+  const body = String(settings[page.bodyKey] || "").trim();
+  app.innerHTML = `
+    <section class="page-head">
+      ${breadcrumbs([{ label: "トップ", href: "#home" }, { label: title }])}
+      <p class="eyebrow">${page.eyebrow}</p>
+      <h1>${escapeHtml(title)}</h1>
+    </section>
+    <section class="section-block info-page-content">
+      ${body ? `<p>${escapeHtml(body).replace(/\r?\n/g, "<br>")}</p>` : `<p class="empty-note">本文はまだありません。</p>`}
     </section>
   `;
 }
@@ -988,6 +1031,7 @@ function route() {
   if (parts[0] === "category") return categoryPage(parts[1], parts[2]);
   if (parts[0] === "entry") return entryPage(parts[1]);
   if (parts[0] === "sign-entry") return signEntryPage(parts[1]);
+  if (parts[0] === "info") return infoPage(parts[1]);
   if (parts[0] === "terms" && !parts[1]) return termsHome();
   if (parts[0] === "terms") return termsPage(parts[1]);
   if (parts[0] === "search") return searchPage(parts[1] || "", parts.slice(2));
